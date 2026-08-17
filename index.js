@@ -366,20 +366,6 @@ client.on('guildMemberAdd', async member => {
   channel.send({ embeds: [embed] });
 });
 
-// Auto-post projects
-client.once('ready', async () => {
-  const announceChannel = client.guilds.cache.get(config.guildId)?.channels.cache.find(ch => ch.name === 'proyectos');
-  if (!announceChannel) return;
-  const messages = await announceChannel.messages.fetch({ limit: 10 });
-  const alreadyPosted = messages.some(m => m.author.id === client.user.id && m.embeds.length > 0);
-  if (alreadyPosted) return;
-  for (const project of config.projects) {
-    const embed = createProjectEmbed(project);
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setLabel(`Visitar ${project.name}`).setURL(project.url).setStyle(ButtonStyle.Link).setEmoji('🌐')
-    );
-    await announceChannel.send({ embeds: [embed], components: [row] });
-  }
-});
+// Auto-post disabled
 
 client.login(config.token);
