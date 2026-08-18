@@ -258,6 +258,22 @@ client.on('interactionCreate', async interaction => {
   await interaction.editReply({ content: `✅ Ticket creado: ${ticketChannel}` });
 });
 
+// Handle verify button
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isButton()) return;
+  if (interaction.customId === 'verify_user') {
+    const guild = interaction.guild;
+    const member = interaction.member;
+    const miembroRole = guild.roles.cache.find(r => r.name === 'Miembro');
+    if (!miembroRole) return interaction.reply({ content: '❌ Error: Rol de verificación no encontrado', ephemeral: true });
+    if (member.roles.cache.has(miembroRole.id)) {
+      return interaction.reply({ content: '✅ Ya estás verificado.', ephemeral: true });
+    }
+    await member.roles.add(miembroRole);
+    await interaction.reply({ content: '✅ **Verificado correctamente.** Ya puedes ver todos los canales. ¡Bienvenido!', ephemeral: true });
+  }
+});
+
 // Handle role buttons
 client.on('interactionCreate', async interaction => {
   if (!interaction.isButton()) return;
