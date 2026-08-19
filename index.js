@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, StringSelectMenuBuilder, AttachmentBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { REST, Routes } = require('discord.js');
 const config = require('./config');
 
@@ -15,7 +15,7 @@ client.commands = new Collection();
 
 const ticketTypes = [
   { id: 'soporte', name: 'Soporte Tecnico', emoji: '🛠️', description: 'Problemas tecnicos con mis servicios', color: '#FF4500' },
-  { id: 'ventas', name: 'Ventas', emoji: '💰', description: 'Informacion sobre precios y presupuestos', color: '#FFD700' },
+  { id: 'compras', name: 'Compras', emoji: '💰', description: 'Quiero comprar un servicio', color: '#FFD700' },
   { id: 'colaboracion', name: 'Colaboracion', emoji: '🤝', description: 'Propuestas de trabajo conjunto', color: '#32CD32' },
   { id: 'feedback', name: 'Feedback', emoji: '📝', description: 'Sugerencias y opiniones', color: '#1E90FF' },
   { id: 'bug', name: 'Reportar Bug', emoji: '🐛', description: 'Reportar errores', color: '#FF69B4' },
@@ -183,6 +183,59 @@ client.on('interactionCreate', async interaction => {
       const ticketType = ticketTypes.find(t => t.id === interaction.values[0]);
       if (!ticketType) return;
 
+      // Si es Compras, mostrar modal
+      if (ticketType.id === 'compras') {
+        const modal = new ModalBuilder()
+          .setCustomId('compras_modal')
+          .setTitle('📝 Cuéntame sobre tu proyecto');
+
+        const nombreInput = new TextInputBuilder()
+          .setCustomId('proyecto_nombre')
+          .setLabel('Nombre del proyecto')
+          .setPlaceholder('Ej: Web para mi negocio')
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true);
+
+        const descripcionInput = new TextInputBuilder()
+          .setCustomId('proyecto_descripcion')
+          .setLabel('Descripción del proyecto')
+          .setPlaceholder('¿Qué necesitas? Describe tu idea...')
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true);
+
+        const presupuestoInput = new TextInputBuilder()
+          .setCustomId('proyecto_presupuesto')
+          .setLabel('Presupuesto aproximado')
+          .setPlaceholder('Ej: 50-100€, 100-200€, 200€+')
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true);
+
+        const plazoInput = new TextInputBuilder()
+          .setCustomId('proyecto_plazo')
+          .setLabel('Plazo de entrega')
+          .setPlaceholder('Ej: 1 semana, 2 semanas, 1 mes')
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true);
+
+        const referenciasInput = new TextInputBuilder()
+          .setCustomId('proyecto_referencias')
+          .setLabel('Referencias o enlaces (opcional)')
+          .setPlaceholder('URLs de ejemplos que te gusten')
+          .setStyle(TextInputStyle.Short)
+          .setRequired(false);
+
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(nombreInput),
+          new ActionRowBuilder().addComponents(descripcionInput),
+          new ActionRowBuilder().addComponents(presupuestoInput),
+          new ActionRowBuilder().addComponents(plazoInput),
+          new ActionRowBuilder().addComponents(referenciasInput)
+        );
+
+        return interaction.showModal(modal);
+      }
+
+      // Para otros tipos de ticket, crear directamente
       const guild = interaction.guild;
       const member = interaction.member;
 
@@ -222,6 +275,57 @@ client.on('interactionCreate', async interaction => {
       await ticketChannel.send({ embeds: [ticketEmbed], components: [closeButton] });
       await ticketChannel.send({ content: member.toString() });
       return interaction.editReply({ content: `Ticket creado: ${ticketChannel}` });
+    }
+  }
+
+  // --- MODALS ---
+  if (interaction.isModalSubmit()) {
+    if (interaction.customId === 'compras_modal') {
+      const guild = interaction.guild;
+      const member = interaction.member;
+
+      const existingTicket = guild.channels.cache.find(c => c.name === `ticket-${member.user.username.toLowerCase()}`);
+      if (existingTicket) return interaction.reply({ content: `Ya tienes un ticket abierto: ${existingTicket}`, ephemeral: true });
+
+      await interaction.deferReply({ ephemeral: true });
+
+      const ticketChannel = await guild.channels.create({
+        name: `ticket-${member.user.username.toLowerCase()}`,
+        type: ChannelType.GuildText,
+        parent: guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name === 'TICKETS')?.id,
+        permissionOverwrites: [
+          { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+          { id: member.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
+        ]
+      });
+
+      const ownerRole = guild.roles.cache.find(r => r.name.includes('Owner'));
+      const adminRole = guild.roles.cache.find(r => r.name.includes('Admin'));
+      const modRole = guild.roles.cache.find(r => r.name.includes('Moderador'));
+      if (ownerRole) await ticketChannel.permissionOverwrites.edit(ownerRole, { ViewChannel: true, SendMessages: true });
+      if (adminRole) await ticketChannel.permissionOverwrites.edit(adminRole, { ViewChannel: true, SendMessages: true });
+      if (modRole) await ticketChannel.permissionOverwrites.edit(modRole, { ViewChannel: true, SendMessages: true });
+
+      const nombre = interaction.fields.getTextInputValue('proyecto_nombre');
+      const descripcion = interaction.fields.getTextInputValue('proyecto_descripcion');
+      const presupuesto = interaction.fields.getTextInputValue('proyecto_presupuesto');
+      const plazo = interaction.fields.getTextInputValue('proyecto_plazo');
+      const referencias = interaction.fields.getTextInputValue('proyecto_referencias') || 'No proporcionadas';
+
+      const ticketEmbed = new EmbedBuilder()
+        .setColor('#FFD700')
+        .setTitle('💰 Ticket: Compras')
+        .setDescription(`Hola ${member}, bienvenido a tu ticket.\n\n**Tipo:** Compras\n\n📋 **Detalles del proyecto:**\n\n**Nombre:** ${nombre}\n\n**Descripción:** ${descripcion}\n\n**Presupuesto:** ${presupuesto}\n\n**Plazo:** ${plazo}\n\n**Referencias:** ${referencias}\n\nUn miembro del equipo te atenderá pronto.\n\nPara cerrar el ticket, haz clic en el botón de abajo.`)
+        .setThumbnail(member.user.displayAvatarURL())
+        .setFooter({ text: 'Bot programado por Unai' });
+
+      const closeButton = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('close_ticket').setLabel('Cerrar Ticket').setStyle(ButtonStyle.Danger).setEmoji('🔒')
+      );
+
+      await ticketChannel.send({ embeds: [ticketEmbed], components: [closeButton] });
+      await ticketChannel.send({ content: member.toString() });
+      return interaction.editReply({ content: `Ticket creado con tu formulario: ${ticketChannel}` });
     }
   }
 
