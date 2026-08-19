@@ -303,63 +303,29 @@ client.on('interactionCreate', async interaction => {
     const channel = interaction.channel;
     if (!channel.name.startsWith('ticket-')) return;
 
-    await interaction.reply({ content: '🔒 Cerrando ticket y guardando transcript...' });
-
-    // Fetch all messages from the ticket
-    let allMessages = [];
-    let lastMessageId;
-    while (true) {
-      const options = { limit: 100 };
-      if (lastMessageId) options.before = lastMessageId;
-      const messages = await channel.messages.fetch(options);
-      if (messages.size === 0) break;
-      allMessages = allMessages.concat(messages.array());
-      lastMessageId = messages.last().id;
+    try {
+      const username = channel.name.replace('ticket-', '');
+      const transcriptsChannel = interaction.guild.channels.cache.find(ch => ch.name === 'transcripts');
+      if (transcriptsChannel) {
+        const embed = new EmbedBuilder()
+          .setColor('#5865F2')
+          .setTitle('📋 Ticket Cerrado')
+          .addFields(
+            { name: 'Usuario', value: username, inline: true },
+            { name: 'Cerrado por', value: interaction.user.tag, inline: true },
+            { name: 'Fecha', value: new Date().toLocaleString('es-ES'), inline: true }
+          )
+          .setTimestamp();
+        await transcriptsChannel.send({ embeds: [embed] });
+      }
+      await interaction.reply({ content: '🔒 Cerrando ticket...' });
+    } catch (e) {
+      console.error('Error:', e);
     }
 
-    allMessages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
-
-    // Build transcript
-    const username = channel.name.replace('ticket-', '');
-    let transcript = `# Transcript: ${channel.name}\n`;
-    transcript += `**Cerrado por:** ${interaction.user.tag}\n`;
-    transcript += `**Fecha:** ${new Date().toLocaleString('es-ES')}\n`;
-    transcript += `**Mensajes totales:** ${allMessages.length}\n\n---\n\n`;
-
-    for (const msg of allMessages) {
-      const time = new Date(msg.createdTimestamp).toLocaleString('es-ES');
-      transcript += `**[${time}] ${msg.author.tag}:**\n${msg.content}\n\n`;
-    }
-
-    // Find transcripts channel
-    const transcriptsChannel = interaction.guild.channels.cache.find(
-      ch => ch.name === 'transcripts'
-    );
-
-    if (transcriptsChannel) {
-      const ticketUser = channel.name.replace('ticket-', '');
-      const transcriptEmbed = new EmbedBuilder()
-        .setColor('#5865F2')
-        .setTitle(`📋 Transcript: ${ticketUser}`)
-        .setDescription(`Ticket cerrado por ${interaction.user}\nMensajes: ${allMessages.length}`)
-        .addFields(
-          { name: 'Usuario', value: ticketUser, inline: true },
-          { name: 'Cerrado por', value: interaction.user.tag, inline: true },
-          { name: 'Fecha', value: new Date().toLocaleString('es-ES'), inline: true }
-        )
-        .setTimestamp();
-
-      // Split transcript into chunks if too long for a file
-      const buffer = Buffer.from(transcript, 'utf-8');
-      const attachment = require('discord.js').AttachmentBuilder.from(buffer, { name: `${channel.name}.md` });
-
-      await transcriptsChannel.send({ embeds: [transcriptEmbed], files: [attachment] });
-    }
-
-    // Close and delete
-    const closeEmbed = new EmbedBuilder().setColor('#FF0000').setTitle('🔒 Ticket Cerrado').setDescription(`Ticket cerrado por ${interaction.user}\n\nTranscript guardado en #transcripts`).setTimestamp();
-    await channel.send({ embeds: [closeEmbed] });
-    setTimeout(async () => { try { await channel.delete('Ticket cerrado'); } catch(e) {} }, 5000);
+    setTimeout(async () => {
+      try { await channel.delete('Ticket cerrado'); } catch(e) {}
+    }, 3000);
   }
 });
 
