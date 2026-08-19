@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, StringSelectMenuBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
 const { REST, Routes } = require('discord.js');
 const config = require('./config');
 
@@ -13,65 +13,33 @@ const client = new Client({
 
 client.commands = new Collection();
 
-// Ticket types
 const ticketTypes = [
-  { id: 'soporte', name: '🛠️ Soporte Técnico', emoji: '🛠️', description: 'Problemas técnicos con mis servicios', color: '#FF4500' },
-  { id: 'ventas', name: '💰 Ventas', emoji: '💰', description: 'Información sobre precios y presupuestos', color: '#FFD700' },
-  { id: 'colaboracion', name: '🤝 Colaboración', emoji: '🤝', description: 'Propuestas de trabajo conjunto', color: '#32CD32' },
-  { id: 'feedback', name: '📝 Feedback', emoji: '📝', description: 'Sugerencias y opiniones sobre mis proyectos', color: '#1E90FF' },
-  { id: 'bug', name: '🐛 Reportar Bug', emoji: '🐛', description: 'Reportar errores en mis aplicaciones', color: '#FF69B4' },
-  { id: 'otro', name: '❓ Otro', emoji: '❓', description: 'Cualquier otra consulta', color: '#9370DB' }
+  { id: 'soporte', name: 'Soporte Tecnico', emoji: '🛠️', description: 'Problemas tecnicos con mis servicios', color: '#FF4500' },
+  { id: 'ventas', name: 'Ventas', emoji: '💰', description: 'Informacion sobre precios y presupuestos', color: '#FFD700' },
+  { id: 'colaboracion', name: 'Colaboracion', emoji: '🤝', description: 'Propuestas de trabajo conjunto', color: '#32CD32' },
+  { id: 'feedback', name: 'Feedback', emoji: '📝', description: 'Sugerencias y opiniones', color: '#1E90FF' },
+  { id: 'bug', name: 'Reportar Bug', emoji: '🐛', description: 'Reportar errores', color: '#FF69B4' },
+  { id: 'otro', name: 'Otro', emoji: '❓', description: 'Cualquier otra consulta', color: '#9370DB' }
 ];
 
-// Register slash commands
 const commands = [
+  { name: 'portfolio', description: 'Muestra mi portfolio completo de proyectos' },
   {
-    name: 'portfolio',
-    description: 'Muestra mi portfolio completo de proyectos',
+    name: 'proyecto', description: 'Muestra informacion de un proyecto especifico',
+    options: [{
+      name: 'nombre', type: 3, description: 'Nombre del proyecto', required: true,
+      choices: config.projects.map(p => ({ name: `${p.emoji} ${p.name}`, value: p.id }))
+    }]
   },
+  { name: 'proyectos', description: 'Lista todos mis proyectos disponibles' },
+  { name: 'roles', description: 'Sistema de roles por intereses' },
+  { name: 'ticket', description: 'Abrir un ticket de soporte' },
   {
-    name: 'proyecto',
-    description: 'Muestra información de un proyecto específico',
-    options: [
-      {
-        name: 'nombre',
-        type: 3,
-        description: 'Nombre del proyecto',
-        required: true,
-        choices: config.projects.map(p => ({
-          name: `${p.emoji} ${p.name}`,
-          value: p.id
-        }))
-      }
-    ]
-  },
-  {
-    name: 'proyectos',
-    description: 'Lista todos mis proyectos disponibles',
-  },
-  {
-    name: 'roles',
-    description: 'Sistema de roles por intereses',
-  },
-  {
-    name: 'ticket',
-    description: 'Abrir un ticket de soporte',
-  },
-  {
-    name: 'suggest',
-    description: 'Enviar una sugerencia al servidor',
-    options: [
-      {
-        name: 'texto',
-        type: 3,
-        description: 'Tu sugerencia',
-        required: true,
-      }
-    ]
+    name: 'suggest', description: 'Enviar una sugerencia al servidor',
+    options: [{ name: 'texto', type: 3, description: 'Tu sugerencia', required: true }]
   }
 ];
 
-// Helper: Create project embed
 function createProjectEmbed(project) {
   return new EmbedBuilder()
     .setColor(project.color)
@@ -79,344 +47,292 @@ function createProjectEmbed(project) {
     .setDescription(project.description)
     .setURL(project.url)
     .addFields(
-      { name: '🔗 Enlace', value: `[Visitar ${project.name}](${project.url})`, inline: true },
-      { name: '📂 Categoría', value: project.category, inline: true }
+      { name: 'Enlace', value: `[Visitar ${project.name}](${project.url})`, inline: true },
+      { name: 'Categoria', value: project.category, inline: true }
     )
-    .setFooter({ text: 'Haz clic en el título para visitar el sitio web' })
+    .setFooter({ text: 'Haz clic en el titulo para visitar el sitio web' })
     .setTimestamp();
 }
 
-// Helper: Create portfolio embed
 function createPortfolioEmbed() {
   const categories = {};
   config.projects.forEach(p => {
     if (!categories[p.category]) categories[p.category] = [];
     categories[p.category].push(p);
   });
-
   const embed = new EmbedBuilder()
     .setColor('#5865F2')
-    .setTitle('💼 Mi Portfolio de Proyectos')
-    .setDescription('Aquí tienes todos mis proyectos organizados por categoría.')
-    .setTimestamp()
-    .setFooter({ text: 'Portfolio de Proyectos Web' });
-
+    .setTitle('Mi Portfolio de Proyectos')
+    .setDescription('Todos mis proyectos organizados por categoria.')
+    .setTimestamp();
   Object.entries(categories).forEach(([cat, projects]) => {
-    const projectList = projects.map(p => `${p.emoji} ${p.name}`).join('\n');
-    embed.addFields({ name: `📁 ${cat}`, value: projectList, inline: false });
+    embed.addFields({ name: cat, value: projects.map(p => `${p.emoji} ${p.name}`).join('\n'), inline: false });
   });
-
   return embed;
 }
 
-// Helper: Create role selection embed
 function createRoleEmbed() {
   const embed = new EmbedBuilder()
     .setColor('#5865F2')
-    .setTitle('🎯 Selecciona tus Intereses')
+    .setTitle('Selecciona tus Intereses')
     .setDescription('Haz clic en los botones para obtener roles personalizados.')
     .setTimestamp();
-
-  const roleDescriptions = config.roles.map(r => `${r.emoji} ${r.name}`).join('\n');
-  embed.addFields({ name: 'Roles disponibles', value: roleDescriptions });
-
+  embed.addFields({ name: 'Roles disponibles', value: config.roles.map(r => `${r.emoji} ${r.name}`).join('\n') });
   return embed;
 }
 
-// Helper: Create ticket panel embed
 function createTicketPanelEmbed() {
   return new EmbedBuilder()
     .setColor('#5865F2')
-    .setTitle('🎫 Sistema de Tickets')
-    .setDescription('Selecciona el tipo de ticket que deseas abrir en el menú de abajo.')
-    .addFields(
-      ticketTypes.map(t => ({
-        name: t.name,
-        value: t.description,
-        inline: true
-      }))
-    )
-    .setTimestamp()
-    .setFooter({ text: 'Selecciona una opción del menú' });
+    .setTitle('Sistema de Tickets')
+    .setDescription('Selecciona el tipo de ticket en el menu de abajo.')
+    .addFields(ticketTypes.map(t => ({ name: t.name, value: t.description, inline: true })))
+    .setTimestamp();
 }
 
-// Bot ready
 client.once('ready', async () => {
-  console.log(`✅ Bot conectado como ${client.user.tag}`);
-  console.log(`📡 Servidor(es): ${client.guilds.cache.map(g => g.name).join(', ')}`);
-
-  // Register commands
+  console.log(`Bot conectado como ${client.user.tag}`);
   const rest = new REST({ version: '10' }).setToken(config.token);
   try {
-    console.log('🔄 Registrando comandos slash...');
-    await rest.put(
-      Routes.applicationGuildCommands(config.clientId, config.guildId),
-      { body: commands }
-    );
-    console.log('✅ Comandos registrados correctamente');
+    await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), { body: commands });
+    console.log('Comandos registrados');
   } catch (error) {
-    console.error('❌ Error registrando comandos:', error);
+    console.error('Error registrando comandos:', error);
   }
 });
 
-// Handle slash commands
+// Single interaction handler
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isChatInputCommand()) return;
 
-  const { commandName } = interaction;
+  // --- SLASH COMMANDS ---
+  if (interaction.isChatInputCommand()) {
+    const { commandName } = interaction;
 
-  if (commandName === 'portfolio') {
-    const embed = createPortfolioEmbed();
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId('view_all_projects')
-        .setLabel('Ver Todos los Proyectos')
-        .setStyle(ButtonStyle.Primary)
-        .setEmoji('📋'),
-      new ButtonBuilder()
-        .setLabel('Visitar Portfolio')
-        .setURL(config.projects[0].url)
-        .setStyle(ButtonStyle.Link)
-        .setEmoji('🌐')
-    );
-    await interaction.reply({ embeds: [embed], components: [row] });
-  }
-
-  if (commandName === 'proyecto') {
-    const projectId = interaction.options.getString('nombre');
-    const project = config.projects.find(p => p.id === projectId);
-    if (!project) return interaction.reply({ content: '❌ Proyecto no encontrado', ephemeral: true });
-    const embed = createProjectEmbed(project);
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setLabel(`Visitar ${project.name}`).setURL(project.url).setStyle(ButtonStyle.Link).setEmoji('🌐')
-    );
-    await interaction.reply({ embeds: [embed], components: [row] });
-  }
-
-  if (commandName === 'proyectos') {
-    const embeds = config.projects.map(p => createProjectEmbed(p));
-    await interaction.reply({ content: '📋 **Todos mis proyectos:**', embeds: embeds.slice(0, 10), ephemeral: true });
-  }
-
-  if (commandName === 'roles') {
-    const embed = createRoleEmbed();
-    const row = new ActionRowBuilder();
-    config.roles.forEach(role => {
-      row.addComponents(
-        new ButtonBuilder().setCustomId(`role_${role.name.toLowerCase()}`).setLabel(role.name).setStyle(ButtonStyle.Secondary).setEmoji(role.emoji)
-      );
-    });
-    await interaction.reply({ embeds: [embed], components: [row] });
-  }
-
-  if (commandName === 'ticket') {
-    const embed = createTicketPanelEmbed();
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('ticket_select')
-      .setPlaceholder('🎯 Selecciona tipo de ticket...')
-      .addOptions(ticketTypes.map(t => ({
-        label: t.name,
-        value: t.id,
-        description: t.description.substring(0, 100),
-        emoji: t.emoji
-      })));
-    const row = new ActionRowBuilder().addComponents(selectMenu);
-    await interaction.reply({ embeds: [embed], components: [row] });
-  }
-
-  if (commandName === 'suggest') {
-    const texto = interaction.options.getString('texto');
-    const channel = interaction.guild.channels.cache.get('1538760787345014884');
-    if (!channel) return interaction.reply({ content: '❌ Canal de sugerencias no encontrado', ephemeral: true });
-
-    const embed = new EmbedBuilder()
-      .setColor('#5865F2')
-      .setTitle('💡 Nueva Sugerencia')
-      .setDescription(texto)
-      .addFields(
-        { name: '👤 Autor', value: interaction.user.tag, inline: true },
-        { name: '👍 Votos a favor', value: '0', inline: true },
-        { name: '👎 Votos en contra', value: '0', inline: true }
-      )
-      .setTimestamp()
-      .setFooter({ text: 'Usa los botones para votar' });
-
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId(`suggest_yes_0`).setLabel('0').setStyle(ButtonStyle.Success).setEmoji('👍'),
-      new ButtonBuilder().setCustomId(`suggest_no_0`).setLabel('0').setStyle(ButtonStyle.Danger).setEmoji('👎')
-    );
-
-    await channel.send({ embeds: [embed], components: [row] });
-    await interaction.reply({ content: '✅ Tu sugerencia ha sido publicada en ' + channel, ephemeral: true });
-  }
-});
-
-// Handle ticket selection
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isStringSelectMenu()) return;
-  if (interaction.customId !== 'ticket_select') return;
-
-  const ticketType = ticketTypes.find(t => t.id === interaction.values[0]);
-  if (!ticketType) return;
-
-  const guild = interaction.guild;
-  const member = interaction.member;
-
-  const existingTicket = guild.channels.cache.find(c => c.name === `ticket-${member.user.username.toLowerCase()}`);
-  if (existingTicket) return interaction.reply({ content: `❌ Ya tienes un ticket abierto: ${existingTicket}`, ephemeral: true });
-
-  await interaction.deferReply({ ephemeral: true });
-
-  const ticketChannel = await guild.channels.create({
-    name: `ticket-${member.user.username.toLowerCase()}`,
-    type: ChannelType.GuildText,
-    parent: guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name === 'TICKETS')?.id,
-    permissionOverwrites: [
-      { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
-      { id: member.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-      { id: guild.roles.cache.find(r => r.name === '👑 Owner')?.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-      { id: guild.roles.cache.find(r => r.name === '⚡ Admin')?.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-      { id: guild.roles.cache.find(r => r.name === '🛡️ Moderador')?.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
-    ]
-  });
-
-  const ticketEmbed = new EmbedBuilder()
-    .setColor(ticketType.color)
-    .setTitle(`${ticketType.emoji} Ticket: ${ticketType.name}`)
-    .setDescription(`Hola ${member}, bienvenido a tu ticket.\n\n**Tipo:** ${ticketType.name}\n**Motivo:** ${ticketType.description}\n\nUn miembro del equipo te atenderá pronto.\n\n**Para cerrar el ticket**, haz clic en el botón de abajo.`)
-    .setThumbnail(member.user.displayAvatarURL())
-    .setTimestamp();
-
-  const closeButton = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('close_ticket').setLabel('Cerrar Ticket').setStyle(ButtonStyle.Danger).setEmoji('🔒')
-  );
-
-  await ticketChannel.send({ embeds: [ticketEmbed], components: [closeButton] });
-  await ticketChannel.send(`${member}`);
-  await interaction.editReply({ content: `✅ Ticket creado: ${ticketChannel}` });
-});
-
-// Handle verify button
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isButton()) return;
-  if (interaction.customId === 'verify_user') {
-    const guild = interaction.guild;
-    const member = interaction.member;
-    const miembroRole = guild.roles.cache.find(r => r.name === 'Miembro');
-    if (!miembroRole) return interaction.reply({ content: '❌ Error: Rol de verificación no encontrado', ephemeral: true });
-    if (member.roles.cache.has(miembroRole.id)) {
-      return interaction.reply({ content: '✅ Ya estás verificado.', ephemeral: true });
-    }
-    await member.roles.add(miembroRole);
-    await interaction.reply({ content: '✅ **Verificado correctamente.** Ya puedes ver todos los canales. ¡Bienvenido!', ephemeral: true });
-  }
-});
-
-// Handle role buttons
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isButton()) return;
-
-  if (interaction.customId.startsWith('role_')) {
-    const roleName = interaction.customId.replace('role_', '');
-    const roleConfig = config.roles.find(r => r.name.toLowerCase() === roleName);
-    if (!roleConfig) return;
-    const role = interaction.guild.roles.cache.find(r => r.name === roleConfig.name);
-    if (!role) return interaction.reply({ content: `❌ Rol "${roleConfig.name}" no encontrado`, ephemeral: true });
-    const member = interaction.member;
-    if (member.roles.cache.has(role.id)) {
-      await member.roles.remove(role);
-      await interaction.reply({ content: `✅ Rol ${roleConfig.emoji} **${roleConfig.name}** eliminado`, ephemeral: true });
-    } else {
-      await member.roles.add(role);
-      await interaction.reply({ content: `✅ Rol ${roleConfig.emoji} **${roleConfig.name}** añadido`, ephemeral: true });
-    }
-  }
-
-  if (interaction.customId === 'view_all_projects') {
-    const embeds = config.projects.map(p => createProjectEmbed(p));
-    await interaction.reply({ embeds: embeds.slice(0, 10), ephemeral: true });
-  }
-
-  if (interaction.customId === 'close_ticket') {
-    const channel = interaction.channel;
-    if (!channel.name.startsWith('ticket-')) return;
-
-    try {
-      const username = channel.name.replace('ticket-', '');
-      const transcriptsChannel = interaction.guild.channels.cache.find(ch => ch.name === 'transcripts');
-      if (transcriptsChannel) {
-        const embed = new EmbedBuilder()
-          .setColor('#5865F2')
-          .setTitle('📋 Ticket Cerrado')
-          .addFields(
-            { name: 'Usuario', value: username, inline: true },
-            { name: 'Cerrado por', value: interaction.user.tag, inline: true },
-            { name: 'Fecha', value: new Date().toLocaleString('es-ES'), inline: true }
-          )
-          .setTimestamp();
-        await transcriptsChannel.send({ embeds: [embed] });
-      }
-      await interaction.reply({ content: '🔒 Cerrando ticket...' });
-    } catch (e) {
-      console.error('Error:', e);
-    }
-
-    setTimeout(async () => {
-      try { await channel.delete('Ticket cerrado'); } catch(e) {}
-    }, 3000);
-  }
-
-  // Handle suggest vote buttons
-  if (interaction.customId.startsWith('suggest_yes_') || interaction.customId.startsWith('suggest_no_')) {
-    const isYes = interaction.customId.startsWith('suggest_yes_');
-    const currentVotes = parseInt(interaction.customId.split('_')[2]);
-    const newVotes = currentVotes + 1;
-
-    const msg = interaction.message;
-    const embed = EmbedBuilder.from(msg.embeds[0]);
-    const fields = embed.data.fields;
-
-    if (isYes) {
-      fields[1].value = String(newVotes);
-      const noField = fields[2];
-      const noVotes = parseInt(noField.value);
+    if (commandName === 'portfolio') {
+      const embed = createPortfolioEmbed();
       const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`suggest_yes_${newVotes}`).setLabel(String(newVotes)).setStyle(ButtonStyle.Success).setEmoji('👍'),
-        new ButtonBuilder().setCustomId(`suggest_no_${noVotes}`).setLabel(String(noVotes)).setStyle(ButtonStyle.Danger).setEmoji('👎')
+        new ButtonBuilder().setCustomId('view_all_projects').setLabel('Ver Todos').setStyle(ButtonStyle.Primary).setEmoji('📋'),
+        new ButtonBuilder().setLabel('Visitar Portfolio').setURL(config.projects[0].url).setStyle(ButtonStyle.Link).setEmoji('🌐')
       );
-      await interaction.update({ embeds: [embed], components: [row] });
-    } else {
-      fields[2].value = String(newVotes);
-      const yesField = fields[1];
-      const yesVotes = parseInt(yesField.value);
+      return interaction.reply({ embeds: [embed], components: [row] });
+    }
+
+    if (commandName === 'proyecto') {
+      const project = config.projects.find(p => p.id === interaction.options.getString('nombre'));
+      if (!project) return interaction.reply({ content: 'Proyecto no encontrado', ephemeral: true });
+      const embed = createProjectEmbed(project);
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setLabel(`Visitar ${project.name}`).setURL(project.url).setStyle(ButtonStyle.Link).setEmoji('🌐')
+      );
+      return interaction.reply({ embeds: [embed], components: [row] });
+    }
+
+    if (commandName === 'proyectos') {
+      const embeds = config.projects.map(p => createProjectEmbed(p));
+      return interaction.reply({ content: 'Todos mis proyectos:', embeds: embeds.slice(0, 10), ephemeral: true });
+    }
+
+    if (commandName === 'roles') {
+      const embed = createRoleEmbed();
+      const row = new ActionRowBuilder();
+      config.roles.forEach(role => {
+        row.addComponents(new ButtonBuilder().setCustomId(`role_${role.name.toLowerCase()}`).setLabel(role.name).setStyle(ButtonStyle.Secondary).setEmoji(role.emoji));
+      });
+      return interaction.reply({ embeds: [embed], components: [row] });
+    }
+
+    if (commandName === 'ticket') {
+      const embed = createTicketPanelEmbed();
+      const selectMenu = new StringSelectMenuBuilder()
+        .setCustomId('ticket_select')
+        .setPlaceholder('Selecciona tipo de ticket...')
+        .addOptions(ticketTypes.map(t => ({ label: t.name, value: t.id, description: t.description.substring(0, 100), emoji: t.emoji })));
+      const row = new ActionRowBuilder().addComponents(selectMenu);
+      return interaction.reply({ embeds: [embed], components: [row] });
+    }
+
+    if (commandName === 'suggest') {
+      const texto = interaction.options.getString('texto');
+      const channel = interaction.guild.channels.cache.get('1538760787345014884');
+      if (!channel) return interaction.reply({ content: 'Canal de sugerencias no encontrado', ephemeral: true });
+
+      const embed = new EmbedBuilder()
+        .setColor('#5865F2')
+        .setTitle('Nueva Sugerencia')
+        .setDescription(texto)
+        .addFields(
+          { name: 'Autor', value: interaction.user.tag, inline: true },
+          { name: '👍 A favor', value: '0', inline: true },
+          { name: '👎 En contra', value: '0', inline: true }
+        )
+        .setTimestamp();
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('suggest_yes_0').setLabel('0').setStyle(ButtonStyle.Success).setEmoji('👍'),
+        new ButtonBuilder().setCustomId('suggest_no_0').setLabel('0').setStyle(ButtonStyle.Danger).setEmoji('👎')
+      );
+
+      await channel.send({ embeds: [embed], components: [row] });
+      return interaction.reply({ content: 'Sugerencia publicada en ' + channel, ephemeral: true });
+    }
+  }
+
+  // --- SELECT MENUS ---
+  if (interaction.isStringSelectMenu()) {
+    if (interaction.customId === 'ticket_select') {
+      const ticketType = ticketTypes.find(t => t.id === interaction.values[0]);
+      if (!ticketType) return;
+
+      const guild = interaction.guild;
+      const member = interaction.member;
+
+      const existingTicket = guild.channels.cache.find(c => c.name === `ticket-${member.user.username.toLowerCase()}`);
+      if (existingTicket) return interaction.reply({ content: `Ya tienes un ticket abierto: ${existingTicket}`, ephemeral: true });
+
+      await interaction.deferReply({ ephemeral: true });
+
+      const ticketChannel = await guild.channels.create({
+        name: `ticket-${member.user.username.toLowerCase()}`,
+        type: ChannelType.GuildText,
+        parent: guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name === 'TICKETS')?.id,
+        permissionOverwrites: [
+          { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+          { id: member.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
+        ]
+      });
+
+      const ownerRole = guild.roles.cache.find(r => r.name.includes('Owner'));
+      const adminRole = guild.roles.cache.find(r => r.name.includes('Admin'));
+      const modRole = guild.roles.cache.find(r => r.name.includes('Moderador'));
+      if (ownerRole) await ticketChannel.permissionOverwrites.edit(ownerRole, { ViewChannel: true, SendMessages: true });
+      if (adminRole) await ticketChannel.permissionOverwrites.edit(adminRole, { ViewChannel: true, SendMessages: true });
+      if (modRole) await ticketChannel.permissionOverwrites.edit(modRole, { ViewChannel: true, SendMessages: true });
+
+      const ticketEmbed = new EmbedBuilder()
+        .setColor(ticketType.color)
+        .setTitle(`${ticketType.emoji} Ticket: ${ticketType.name}`)
+        .setDescription(`Hola ${member}, bienvenido a tu ticket.\n\n**Tipo:** ${ticketType.name}\n**Motivo:** ${ticketType.description}\n\nUn miembro del equipo te atendera pronto.\n\nPara cerrar el ticket, haz clic en el boton de abajo.`)
+        .setThumbnail(member.user.displayAvatarURL())
+        .setTimestamp();
+
+      const closeButton = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('close_ticket').setLabel('Cerrar Ticket').setStyle(ButtonStyle.Danger).setEmoji('🔒')
+      );
+
+      await ticketChannel.send({ embeds: [ticketEmbed], components: [closeButton] });
+      await ticketChannel.send({ content: member.toString() });
+      return interaction.editReply({ content: `Ticket creado: ${ticketChannel}` });
+    }
+  }
+
+  // --- BUTTONS ---
+  if (interaction.isButton()) {
+
+    // Verify
+    if (interaction.customId === 'verify_user') {
+      const miembroRole = interaction.guild.roles.cache.find(r => r.name === 'Miembro');
+      if (!miembroRole) return interaction.reply({ content: 'Error: Rol no encontrado', ephemeral: true });
+      if (interaction.member.roles.cache.has(miembroRole.id)) {
+        return interaction.reply({ content: 'Ya estas verificado.', ephemeral: true });
+      }
+      await interaction.member.roles.add(miembroRole);
+      return interaction.reply({ content: 'Verificado correctamente. Ya puedes ver todos los canales.', ephemeral: true });
+    }
+
+    // Roles
+    if (interaction.customId.startsWith('role_')) {
+      const roleName = interaction.customId.replace('role_', '');
+      const roleConfig = config.roles.find(r => r.name.toLowerCase() === roleName);
+      if (!roleConfig) return;
+      const role = interaction.guild.roles.cache.find(r => r.name === roleConfig.name);
+      if (!role) return interaction.reply({ content: `Rol "${roleConfig.name}" no encontrado`, ephemeral: true });
+      if (interaction.member.roles.cache.has(role.id)) {
+        await interaction.member.roles.remove(role);
+        return interaction.reply({ content: `Rol ${roleConfig.emoji} ${roleConfig.name} eliminado`, ephemeral: true });
+      } else {
+        await interaction.member.roles.add(role);
+        return interaction.reply({ content: `Rol ${roleConfig.emoji} ${roleConfig.name} anadido`, ephemeral: true });
+      }
+    }
+
+    // View all projects
+    if (interaction.customId === 'view_all_projects') {
+      const embeds = config.projects.map(p => createProjectEmbed(p));
+      return interaction.reply({ embeds: embeds.slice(0, 10), ephemeral: true });
+    }
+
+    // Suggest votes
+    if (interaction.customId.startsWith('suggest_yes_') || interaction.customId.startsWith('suggest_no_')) {
+      const isYes = interaction.customId.startsWith('suggest_yes_');
+      const currentVotes = parseInt(interaction.customId.split('_')[2]);
+      const newVotes = currentVotes + 1;
+
+      const msg = interaction.message;
+      const embed = EmbedBuilder.from(msg.embeds[0]);
+      const fields = embed.data.fields;
+
+      const yesVotes = isYes ? newVotes : parseInt(fields[1].value);
+      const noVotes = isYes ? parseInt(fields[2].value) : newVotes;
+
+      fields[1].value = String(yesVotes);
+      fields[2].value = String(noVotes);
+
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId(`suggest_yes_${yesVotes}`).setLabel(String(yesVotes)).setStyle(ButtonStyle.Success).setEmoji('👍'),
-        new ButtonBuilder().setCustomId(`suggest_no_${newVotes}`).setLabel(String(newVotes)).setStyle(ButtonStyle.Danger).setEmoji('👎')
+        new ButtonBuilder().setCustomId(`suggest_no_${noVotes}`).setLabel(String(noVotes)).setStyle(ButtonStyle.Danger).setEmoji('👎')
       );
-      await interaction.update({ embeds: [embed], components: [row] });
+      return interaction.update({ embeds: [embed], components: [row] });
+    }
+
+    // Close ticket
+    if (interaction.customId === 'close_ticket') {
+      const channel = interaction.channel;
+      if (!channel.name.startsWith('ticket-')) return;
+
+      try {
+        const username = channel.name.replace('ticket-', '');
+        const transcriptsChannel = interaction.guild.channels.cache.find(ch => ch.name === 'transcripts');
+        if (transcriptsChannel) {
+          const embed = new EmbedBuilder()
+            .setColor('#5865F2')
+            .setTitle('Ticket Cerrado')
+            .addFields(
+              { name: 'Usuario', value: username, inline: true },
+              { name: 'Cerrado por', value: interaction.user.tag, inline: true },
+              { name: 'Fecha', value: new Date().toLocaleString('es-ES'), inline: true }
+            )
+            .setTimestamp();
+          await transcriptsChannel.send({ embeds: [embed] });
+        }
+        await interaction.reply({ content: 'Cerrando ticket...' });
+      } catch (e) {
+        console.error('Error:', e);
+      }
+
+      setTimeout(async () => {
+        try { await channel.delete('Ticket cerrado'); } catch(e) {}
+      }, 3000);
     }
   }
 });
 
-// Welcome message
+// Welcome
 client.on('guildMemberAdd', async member => {
   const channel = member.guild.channels.cache.find(ch => ch.name === 'bienvenida');
   if (!channel) return;
   const embed = new EmbedBuilder()
     .setColor('#57F287')
-    .setTitle(`¡Bienvenido/a ${member.user.username}! 🎉`)
-    .setDescription('¡Gracias por unirte a nuestra comunidad!')
+    .setTitle(`Bienvenido/a ${member.user.username}!`)
+    .setDescription('Gracias por unirte a nuestra comunidad!')
     .addFields(
-      { name: '💼 Portfolio', value: 'Usa `/portfolio` para ver todos los proyectos', inline: false },
-      { name: '🎯 Roles', value: 'Usa `/roles` para personalizar tu experiencia', inline: false },
-      { name: '📋 Proyectos', value: 'Usa `/proyectos` para ver la lista completa', inline: false },
-      { name: '🎫 Tickets', value: 'Usa `/ticket` para abrir un ticket de soporte', inline: false }
+      { name: 'Portfolio', value: 'Usa `/portfolio` para ver todos los proyectos', inline: false },
+      { name: 'Roles', value: 'Usa `/roles` para personalizar tu experiencia', inline: false },
+      { name: 'Proyectos', value: 'Usa `/proyectos` para ver la lista completa', inline: false },
+      { name: 'Tickets', value: 'Usa `/ticket` para abrir un ticket de soporte', inline: false }
     )
     .setThumbnail(member.user.displayAvatarURL())
     .setTimestamp();
   channel.send({ embeds: [embed] });
 });
-
-// Auto-post disabled
 
 client.login(config.token);
