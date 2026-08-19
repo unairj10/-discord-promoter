@@ -51,7 +51,7 @@ function createProjectEmbed(project) {
       { name: 'Categoria', value: project.category, inline: true }
     )
     .setFooter({ text: 'Haz clic en el titulo para visitar el sitio web' })
-    .setTimestamp();
+    .setFooter({ text: 'Bot programado por Unai' });
 }
 
 function createPortfolioEmbed() {
@@ -64,7 +64,7 @@ function createPortfolioEmbed() {
     .setColor('#5865F2')
     .setTitle('Mi Portfolio de Proyectos')
     .setDescription('Todos mis proyectos organizados por categoria.')
-    .setTimestamp();
+    .setFooter({ text: 'Bot programado por Unai' });
   Object.entries(categories).forEach(([cat, projects]) => {
     embed.addFields({ name: cat, value: projects.map(p => `${p.emoji} ${p.name}`).join('\n'), inline: false });
   });
@@ -76,7 +76,7 @@ function createRoleEmbed() {
     .setColor('#5865F2')
     .setTitle('Selecciona tus Intereses')
     .setDescription('Haz clic en los botones para obtener roles personalizados.')
-    .setTimestamp();
+    .setFooter({ text: 'Bot programado por Unai' });
   embed.addFields({ name: 'Roles disponibles', value: config.roles.map(r => `${r.emoji} ${r.name}`).join('\n') });
   return embed;
 }
@@ -87,7 +87,7 @@ function createTicketPanelEmbed() {
     .setTitle('Sistema de Tickets')
     .setDescription('Selecciona el tipo de ticket en el menu de abajo.')
     .addFields(ticketTypes.map(t => ({ name: t.name, value: t.description, inline: true })))
-    .setTimestamp();
+    .setFooter({ text: 'Bot programado por Unai' });
 }
 
 client.once('ready', async () => {
@@ -165,7 +165,7 @@ client.on('interactionCreate', async interaction => {
           { name: '👍 A favor', value: '0', inline: true },
           { name: '👎 En contra', value: '0', inline: true }
         )
-        .setTimestamp();
+        .setFooter({ text: 'Bot programado por Unai' });
 
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId('suggest_yes_0').setLabel('0').setStyle(ButtonStyle.Success).setEmoji('👍'),
@@ -213,7 +213,7 @@ client.on('interactionCreate', async interaction => {
         .setTitle(`${ticketType.emoji} Ticket: ${ticketType.name}`)
         .setDescription(`Hola ${member}, bienvenido a tu ticket.\n\n**Tipo:** ${ticketType.name}\n**Motivo:** ${ticketType.description}\n\nUn miembro del equipo te atendera pronto.\n\nPara cerrar el ticket, haz clic en el boton de abajo.`)
         .setThumbnail(member.user.displayAvatarURL())
-        .setTimestamp();
+        .setFooter({ text: 'Bot programado por Unai' });
 
       const closeButton = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId('close_ticket').setLabel('Cerrar Ticket').setStyle(ButtonStyle.Danger).setEmoji('🔒')
@@ -301,7 +301,7 @@ client.on('interactionCreate', async interaction => {
               { name: 'Cerrado por', value: interaction.user.tag, inline: true },
               { name: 'Fecha', value: new Date().toLocaleString('es-ES'), inline: true }
             )
-            .setTimestamp();
+            .setFooter({ text: 'Bot programado por Unai' });
           await transcriptsChannel.send({ embeds: [embed] });
         }
         await interaction.reply({ content: 'Cerrando ticket...' });
@@ -331,7 +331,7 @@ client.on('guildMemberAdd', async member => {
       { name: 'Tickets', value: 'Usa `/ticket` para abrir un ticket de soporte', inline: false }
     )
     .setThumbnail(member.user.displayAvatarURL())
-    .setTimestamp();
+    .setFooter({ text: 'Bot programado por Unai' });
   channel.send({ embeds: [embed] });
 });
 
