@@ -56,6 +56,18 @@ const commands = [
   {
     name: 'ticket',
     description: 'Abrir un ticket de soporte',
+  },
+  {
+    name: 'suggest',
+    description: 'Enviar una sugerencia al servidor',
+    options: [
+      {
+        name: 'texto',
+        type: 3,
+        description: 'Tu sugerencia',
+        required: true,
+      }
+    ]
   }
 ];
 
@@ -211,6 +223,32 @@ client.on('interactionCreate', async interaction => {
     const row = new ActionRowBuilder().addComponents(selectMenu);
     await interaction.reply({ embeds: [embed], components: [row] });
   }
+
+  if (commandName === 'suggest') {
+    const texto = interaction.options.getString('texto');
+    const channel = interaction.guild.channels.cache.get('1538760787345014884');
+    if (!channel) return interaction.reply({ content: '❌ Canal de sugerencias no encontrado', ephemeral: true });
+
+    const embed = new EmbedBuilder()
+      .setColor('#5865F2')
+      .setTitle('💡 Nueva Sugerencia')
+      .setDescription(texto)
+      .addFields(
+        { name: '👤 Autor', value: interaction.user.tag, inline: true },
+        { name: '👍 Votos a favor', value: '0', inline: true },
+        { name: '👎 Votos en contra', value: '0', inline: true }
+      )
+      .setTimestamp()
+      .setFooter({ text: 'Usa los botones para votar' });
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId(`suggest_yes_0`).setLabel('0').setStyle(ButtonStyle.Success).setEmoji('👍'),
+      new ButtonBuilder().setCustomId(`suggest_no_0`).setLabel('0').setStyle(ButtonStyle.Danger).setEmoji('👎')
+    );
+
+    await channel.send({ embeds: [embed], components: [row] });
+    await interaction.reply({ content: '✅ Tu sugerencia ha sido publicada en ' + channel, ephemeral: true });
+  }
 });
 
 // Handle ticket selection
@@ -326,6 +364,37 @@ client.on('interactionCreate', async interaction => {
     setTimeout(async () => {
       try { await channel.delete('Ticket cerrado'); } catch(e) {}
     }, 3000);
+  }
+
+  // Handle suggest vote buttons
+  if (interaction.customId.startsWith('suggest_yes_') || interaction.customId.startsWith('suggest_no_')) {
+    const isYes = interaction.customId.startsWith('suggest_yes_');
+    const currentVotes = parseInt(interaction.customId.split('_')[2]);
+    const newVotes = currentVotes + 1;
+
+    const msg = interaction.message;
+    const embed = EmbedBuilder.from(msg.embeds[0]);
+    const fields = embed.data.fields;
+
+    if (isYes) {
+      fields[1].value = String(newVotes);
+      const noField = fields[2];
+      const noVotes = parseInt(noField.value);
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`suggest_yes_${newVotes}`).setLabel(String(newVotes)).setStyle(ButtonStyle.Success).setEmoji('👍'),
+        new ButtonBuilder().setCustomId(`suggest_no_${noVotes}`).setLabel(String(noVotes)).setStyle(ButtonStyle.Danger).setEmoji('👎')
+      );
+      await interaction.update({ embeds: [embed], components: [row] });
+    } else {
+      fields[2].value = String(newVotes);
+      const yesField = fields[1];
+      const yesVotes = parseInt(yesField.value);
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`suggest_yes_${yesVotes}`).setLabel(String(yesVotes)).setStyle(ButtonStyle.Success).setEmoji('👍'),
+        new ButtonBuilder().setCustomId(`suggest_no_${newVotes}`).setLabel(String(newVotes)).setStyle(ButtonStyle.Danger).setEmoji('👎')
+      );
+      await interaction.update({ embeds: [embed], components: [row] });
+    }
   }
 });
 
