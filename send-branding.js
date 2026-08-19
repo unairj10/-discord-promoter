@@ -16,17 +16,16 @@ client.once('ready', async () => {
   const embed = new EmbedBuilder()
     .setColor('#5865F2')
     .setTitle('🎨 Branding de Marca')
-    .setDescription('Identidad visual y branding profesional para tu negocio o proyecto.')
+    .setDescription('Identidad visual y branding profesional para tu negocio o proyecto.\n\n━━━━━━━━━━━━━━━━━━━━━')
     .addFields(
-      { name: '📋 Qué incluye', value: '• Diseño de logo y logotipos\n• Paleta de colores corporativa\n• Selección tipográfica\n• Manual de marca completo\n• Aplicaciones en redes sociales\n• Plantillas de diseño', inline: false },
-      { name: '🎯 Ideal para', value: 'Emprendedores, empresas y profesionales que necesitan una identidad visual coherente y profesional.', inline: false },
-      { name: '💡 Por qué es importante', value: 'Un buen branding genera confianza, profesionalismo y reconocimiento. Tu marca es la primera impresión que dejas.', inline: false }
+      { name: '📋 **Qué incluye**', value: '> Diseño de logo y logotipos\n> Paleta de colores corporativa\n> Selección tipográfica\n> Manual de marca completo\n> Aplicaciones en redes sociales\n> Plantillas de diseño', inline: false },
+      { name: '🎯 **Ideal para**', value: '> Emprendedores, empresas y profesionales que necesitan una identidad visual coherente y profesional.', inline: false },
+      { name: '💡 **Por qué es importante**', value: '> Un buen branding genera confianza, profesionalismo y reconocimiento. Tu marca es la primera impresión que dejas.\n\n━━━━━━━━━━━━━━━━━━━━━\n\n🎫 **¿Más información?** Abre un ticket con `/ticket` y te atendemos.', inline: false }
     )
-    .setTimestamp()
-    .setFooter({ text: 'Branding de Marca - Portfolio Web' });
+    .setFooter({ text: 'Bot programado por Unai' });
 
   await channel.send({ embeds: [embed] });
-  console.log('Publicado en canal de branding');
+  console.log('✅ Branding actualizado');
   process.exit(0);
 });
 

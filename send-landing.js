@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const config = require('./config');
 
 const client = new Client({
@@ -15,18 +15,17 @@ client.once('ready', async () => {
 
   const embed = new EmbedBuilder()
     .setColor('#57F287')
-    .setTitle('Landing para Negocio Local')
-    .setDescription('Pagina de presentacion para un pequeno comercio con todo lo necesario para atraer clientes.')
+    .setTitle('🏪 Landing para Negocio Local')
+    .setDescription('Página de presentación para un pequeño comercio con todo lo necesario para atraer clientes.\n\n━━━━━━━━━━━━━━━━━━━━━')
     .addFields(
-      { name: 'Que incluye', value: '• Diseno moderno y profesional\n• Seccion de servicios\n• Horarios y ubicacion\n• Formulario de contacto\n• Enlaces a redes sociales\n• Optimizada para movil', inline: false },
-      { name: 'Ideal para', value: 'Negocios locales como tiendas, restaurantes, peluquerias, gimnasios y cualquier comercio que quiera presencia online.', inline: false },
-      { name: 'Por que es importante', value: 'Una landing page profesional genera confianza y facilita que los clientes te encuentren y contacten.', inline: false }
+      { name: '📋 **Qué incluye**', value: '> Diseño moderno y profesional\n> Sección de servicios\n> Horarios y ubicación\n> Formulario de contacto\n> Enlaces a redes sociales\n> Optimizada para móvil', inline: false },
+      { name: '🎯 **Ideal para**', value: '> Negocios locales como tiendas, restaurantes, peluquerías, gimnasios y cualquier comercio que quiera presencia online.', inline: false },
+      { name: '💡 **Por qué es importante**', value: '> Una landing page profesional genera confianza y facilita que los clientes te encuentren y contacten.\n\n━━━━━━━━━━━━━━━━━━━━━\n\n🎫 **¿Más información?** Abre un ticket con `/ticket` y te atendemos.', inline: false }
     )
-    .setTimestamp()
-    .setFooter({ text: 'Landing para Negocio Local' });
+    .setFooter({ text: 'Bot programado por Unai' });
 
   await channel.send({ embeds: [embed] });
-  console.log('Publicado en canal de landing');
+  console.log('✅ Landing actualizado');
   process.exit(0);
 });
 

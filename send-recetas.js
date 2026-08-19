@@ -16,17 +16,16 @@ client.once('ready', async () => {
   const embed = new EmbedBuilder()
     .setColor('#5865F2')
     .setTitle('🍳 Web de Recetas')
-    .setDescription('Web con recetas organizadas, paso a paso y con fotos.')
+    .setDescription('Web con recetas organizadas, paso a paso y con fotos.\n\n━━━━━━━━━━━━━━━━━━━━━')
     .addFields(
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🔹 Qué es**\nUna web donde publicar y compartir recetas de cocina de forma visual y sencilla.', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🔹 Qué incluye**\n• Recetas con ingredientes y pasos\n• Fotos de cada receta\n• Filtros por categoría\n• Tiempo de preparación\n• Porciones y dificultad\n• Compartir en redes sociales', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🎯 Ideal para**\nCocineros, foodies, chefs y cualquier persona que quiera compartir sus recetas con el mundo.', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**💡 Por qué es importante**\nUna web de recetas bien diseñada genera comunidad, demuestra tu habilidad y puede incluso monetizarse.' + '\n\n🎫 **¿Más información?** Abre un ticket con `/ticket` y te atendemos.', inline: false }
+      { name: '📋 **Qué incluye**', value: '> Recetas con ingredientes y pasos\n> Fotos de cada receta\n> Filtros por categoría\n> Tiempo de preparación\n> Porciones y dificultad\n> Compartir en redes sociales', inline: false },
+      { name: '🎯 **Ideal para**', value: '> Cocineros, foodies, chefs y cualquier persona que quiera compartir sus recetas con el mundo.', inline: false },
+      { name: '💡 **Por qué es importante**', value: '> Una web de recetas bien diseñada genera comunidad, demuestra tu habilidad y puede incluso monetizarse.\n\n━━━━━━━━━━━━━━━━━━━━━\n\n🎫 **¿Más información?** Abre un ticket con `/ticket` y te atendemos.', inline: false }
     )
     .setFooter({ text: 'Bot programado por Unai' });
 
   await channel.send({ embeds: [embed] });
-  console.log('Publicado en canal de web de recetas');
+  console.log('✅ Recetas actualizado');
   process.exit(0);
 });
 

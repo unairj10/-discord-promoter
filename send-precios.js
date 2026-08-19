@@ -10,36 +10,25 @@ client.once('ready', async () => {
   const guild = client.guilds.cache.get(config.guildId);
   if (!guild) { process.exit(1); }
 
-  // Create channel
-  let channel = guild.channels.cache.find(c => c.name === 'precios');
-  if (!channel) {
-    channel = await guild.channels.create({
-      name: 'precios',
-      type: ChannelType.GuildText,
-      parent: guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name === 'MARKETING')?.id,
-      permissionOverwrites: [
-        { id: guild.id, allow: [PermissionFlagsBits.ViewChannel], deny: [PermissionFlagsBits.SendMessages] }
-      ]
-    });
-  }
+  const channel = guild.channels.cache.find(c => c.name === 'precios');
+  if (!channel) { console.log('Canal no encontrado'); process.exit(1); }
 
   const embed = new EmbedBuilder()
     .setColor('#57F287')
-    .setTitle('Precios')
-    .setDescription('Precios orientativos para empezar. Cada proyecto se presupuesta a medida.')
+    .setTitle('💰 Precios')
+    .setDescription('Precios orientativos para empezar. Cada proyecto se presupuesta a medida.\n\n━━━━━━━━━━━━━━━━━━━━━')
     .addFields(
-      { name: 'Pagina web', value: 'Web personal o de negocio, clara y moderna, con formulario de contacto.\n**desde 50 €**', inline: true },
-      { name: 'Edicion de video', value: 'Videos para redes, presentaciones y contenido con buen ritmo y estetica.\n**desde 20 €**', inline: true },
-      { name: 'Diseno y branding', value: 'Logos, paletas de color y piezas graficas para que tu marca se vea profesional.\n**desde 15 €**', inline: true }
+      { name: '🌐 **Página web**', value: '> Web personal o de negocio, clara y moderna, con formulario de contacto.\n> **desde 50 €**', inline: true },
+      { name: '🎬 **Edición de vídeo**', value: '> Vídeos para redes, presentaciones y contenido con buen ritmo y estética.\n> **desde 20 €**', inline: true },
+      { name: '🎨 **Diseño y branding**', value: '> Logos, paletas de color y piezas gráficas para que tu marca se vea profesional.\n> **desde 15 €**', inline: true }
     )
     .addFields(
-      { name: '¿Necesitas otra cosa?', value: 'Escribeme y lo hablamos.', inline: false }
+      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**¿Necesitas otra cosa?**\nAbre un ticket con `/ticket` y te atendemos.', inline: false }
     )
-    .setTimestamp()
-    .setFooter({ text: 'Todos los precios son orientativos' });
+    .setFooter({ text: 'Bot programado por Unai' });
 
   await channel.send({ embeds: [embed] });
-  console.log('Canal de precios creado y publicado');
+  console.log('✅ Precios actualizado');
   process.exit(0);
 });
 

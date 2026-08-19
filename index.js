@@ -247,7 +247,7 @@ client.on('interactionCreate', async interaction => {
       const ticketChannel = await guild.channels.create({
         name: `ticket-${member.user.username.toLowerCase()}`,
         type: ChannelType.GuildText,
-        parent: guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name === 'TICKETS')?.id,
+        parent: guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name.includes('TICKETS'))?.id,
         permissionOverwrites: [
           { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
           { id: member.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
@@ -292,7 +292,7 @@ client.on('interactionCreate', async interaction => {
       const ticketChannel = await guild.channels.create({
         name: `ticket-${member.user.username.toLowerCase()}`,
         type: ChannelType.GuildText,
-        parent: guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name === 'TICKETS')?.id,
+        parent: guild.channels.cache.find(c => c.type === ChannelType.GuildCategory && c.name.includes('TICKETS'))?.id,
         permissionOverwrites: [
           { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
           { id: member.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
@@ -422,21 +422,7 @@ client.on('interactionCreate', async interaction => {
 
 // Welcome
 client.on('guildMemberAdd', async member => {
-  const channel = member.guild.channels.cache.find(ch => ch.name === 'bienvenida');
-  if (!channel) return;
-  const embed = new EmbedBuilder()
-    .setColor('#57F287')
-    .setTitle(`Bienvenido/a ${member.user.username}!`)
-    .setDescription('Gracias por unirte a nuestra comunidad!')
-    .addFields(
-      { name: 'Portfolio', value: 'Usa `/portfolio` para ver todos los proyectos', inline: false },
-      { name: 'Roles', value: 'Usa `/roles` para personalizar tu experiencia', inline: false },
-      { name: 'Proyectos', value: 'Usa `/proyectos` para ver la lista completa', inline: false },
-      { name: 'Tickets', value: 'Usa `/ticket` para abrir un ticket de soporte', inline: false }
-    )
-    .setThumbnail(member.user.displayAvatarURL())
-    .setFooter({ text: 'Bot programado por Unai' });
-  channel.send({ embeds: [embed] });
+  // Mensaje de bienvenida desactivado - reacciona al mensaje de verificación
 });
 
 client.login(config.token);

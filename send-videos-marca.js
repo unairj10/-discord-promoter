@@ -16,17 +16,16 @@ client.once('ready', async () => {
   const embed = new EmbedBuilder()
     .setColor('#5865F2')
     .setTitle('🎬 Vídeos de Marca')
-    .setDescription('Animaciones y vídeos promocionales para redes sociales, presentaciones y publicidad de tu marca.')
+    .setDescription('Animaciones y vídeos promocionales para redes sociales, presentaciones y publicidad de tu marca.\n\n━━━━━━━━━━━━━━━━━━━━━')
     .addFields(
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🔹 Qué es**\nVídeos animados o promocionales creados para destacar tu marca en redes sociales, presentaciones y publicidad.', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🔹 Qué incluye**\n• Animaciones y motion graphics\n• Vídeos para Instagram, TikTok, YouTube\n• Presentaciones con vídeo\n• Vídeos promocionales\n• Edición con ritmo y estética', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🎯 Ideal para**\nEmprendedores, negocios y marcas que quieren captar la atención con contenido visual dinámico.', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**💡 Por qué es importante**\nEl vídeo es el formato que más engagement genera. Un buen vídeo de marca marca la diferencia y te hace memorable.' + '\n\n🎫 **¿Más información?** Abre un ticket con `/ticket` y te atendemos.', inline: false }
+      { name: '📋 **Qué incluye**', value: '> Animaciones y motion graphics\n> Vídeos para Instagram, TikTok, YouTube\n> Presentaciones con vídeo\n> Vídeos promocionales\n> Edición con ritmo y estética', inline: false },
+      { name: '🎯 **Ideal para**', value: '> Emprendedores, negocios y marcas que quieren captar la atención con contenido visual dinámico.', inline: false },
+      { name: '💡 **Por qué es importante**', value: '> El vídeo es el formato que más engagement genera. Un buen vídeo de marca marca la diferencia y te hace memorable.\n\n━━━━━━━━━━━━━━━━━━━━━\n\n🎫 **¿Más información?** Abre un ticket con `/ticket` y te atendemos.', inline: false }
     )
     .setFooter({ text: 'Bot programado por Unai' });
 
   await channel.send({ embeds: [embed] });
-  console.log('Publicado en canal de vídeos de marca');
+  console.log('✅ Videos de marca actualizado');
   process.exit(0);
 });
 

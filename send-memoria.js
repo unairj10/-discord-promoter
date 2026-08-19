@@ -16,17 +16,16 @@ client.once('ready', async () => {
   const embed = new EmbedBuilder()
     .setColor('#5865F2')
     .setTitle('🧠 Juego de Memoria')
-    .setDescription('Juego interactivo de memoria para entrenar el cerebro.')
+    .setDescription('Juego interactivo de memoria para entrenar el cerebro.\n\n━━━━━━━━━━━━━━━━━━━━━')
     .addFields(
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🔹 Qué es**\nUn juego web donde debes encontrar parejas de cartas con imágenes o palabras iguales.', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🔹 Qué incluye**\n• Tablero con cartas boca abajo\n• Voltear dos cartas por turno\n• Si coinciden, desaparecen\n• Cronómetro para medir tiempo\n• Contador de intentos\n• Diferentes niveles de dificultad', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**🎯 Ideal para**\nNiños, adultos y mayores que quieran entrenar su memoria de forma divertida.', inline: false },
-      { name: '━━━━━━━━━━━━━━━━━━━━━', value: '**💡 Por qué es importante**\nLos juegos de memoria mejoran la concentración, la atención y la capacidad de recordar. ¡Además son adictivos!' + '\n\n🎫 **¿Más información?** Abre un ticket con `/ticket` y te atendemos.', inline: false }
+      { name: '📋 **Qué incluye**', value: '> Tablero con cartas boca abajo\n> Voltear dos cartas por turno\n> Si coinciden, desaparecen\n> Cronómetro para medir tiempo\n> Contador de intentos\n> Diferentes niveles de dificultad', inline: false },
+      { name: '🎯 **Ideal para**', value: '> Niños, adultos y mayores que quieran entrenar su memoria de forma divertida.', inline: false },
+      { name: '💡 **Por qué es importante**', value: '> Los juegos de memoria mejoran la concentración, la atención y la capacidad de recordar. ¡Además son adictivos!\n\n━━━━━━━━━━━━━━━━━━━━━\n\n🎫 **¿Más información?** Abre un ticket con `/ticket` y te atendemos.', inline: false }
     )
     .setFooter({ text: 'Bot programado por Unai' });
 
   await channel.send({ embeds: [embed] });
-  console.log('Publicado en canal de juego de memoria');
+  console.log('✅ Memoria actualizado');
   process.exit(0);
 });
 
