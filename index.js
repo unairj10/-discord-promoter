@@ -334,7 +334,8 @@ client.on('interactionCreate', async interaction => {
 
     // Verify
     if (interaction.customId === 'verify_user') {
-      const miembroRole = interaction.guild.roles.cache.find(r => r.name === 'Miembro');
+      const roles = await interaction.guild.roles.fetch();
+      const miembroRole = roles.get('1485405932728090749') || roles.find(r => r.name === 'ㆍUser') || roles.find(r => r.name === 'Miembro');
       if (!miembroRole) return interaction.reply({ content: 'Error: Rol no encontrado', ephemeral: true });
       if (interaction.member.roles.cache.has(miembroRole.id)) {
         return interaction.reply({ content: 'Ya estas verificado.', ephemeral: true });

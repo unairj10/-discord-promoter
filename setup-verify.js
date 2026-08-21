@@ -19,7 +19,7 @@ client.once('ready', async () => {
   console.log(`📡 Configurando verificación en: ${guild.name}`);
 
   // 1. Create "Miembro" role
-  let miembroRole = guild.roles.cache.find(r => r.name === 'Miembro');
+  let miembroRole = guild.roles.cache.get('1485405932728090749') || guild.roles.cache.find(r => r.name === 'Miembro');
   if (!miembroRole) {
     miembroRole = await guild.roles.create({
       name: 'Miembro',
